@@ -1,0 +1,47 @@
+#!perl5
+use Language::Prolog;
+
+# An example to test the prolog module. First does a simple
+# grandparent, backtracking to get all solutions,
+# second is a test of lists using member
+
+
+$a = <<'EOPROLOG';
+parent(john,sally).
+parent(john,joe). 
+parent(mary,joe).
+parent(phil,beau).
+parent(jane,john).
+grandparent(X,Z) :- parent(X,Y),parent(Y,Z).
+EOPROLOG
+;
+
+while ($a) {
+    eval 'Language::Prolog::Interpreter->readStatement(\$a)';
+    $@ && die $@,$a,"\n";
+    $a=~s/^\s*//;
+}
+
+$a = '?- grandparent(GPARENT,GCHILD).';
+print $a,"\n";
+$Q = Language::Prolog::Interpreter->readStatement(\$a);
+while($Q->query()) {
+    print "found solutions\n";
+    print 'GPARENT = ',$Q->variableResult('GPARENT'),"\n";
+    print 'GCHILD = ',$Q->variableResult('GCHILD'),"\n\n";
+}
+print "no more solutions\n\n";
+
+$a = 'member(A,[A|_]).';
+$b = 'member(A,[_|B]) :- member(A,B).'; #Classic member
+Language::Prolog::Interpreter->readStatement(\$a);
+Language::Prolog::Interpreter->readStatement(\$b);
+
+$a = '?- member(c(V),[a(a),b(b),c(c),d(d),c(q)]).';
+print $a,"\n";
+$Q = Language::Prolog::Interpreter->readStatement(\$a);
+while($Q->query()) {
+    print "found solutions\n";
+    print 'V = ',$Q->variableResult('V'),"\n\n";
+}
+print "no more solutions\n\n";
